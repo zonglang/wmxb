@@ -13,10 +13,10 @@
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="验证码:">
+        <el-form-item label="用户手机号:">
           <el-input
-            placeholder="请输入验证码"
-            v-model="authCode"
+            placeholder="请输入用户手机号"
+            v-model="phoneNumber"
             style="width:200px"
             clearable>
           </el-input>
@@ -112,7 +112,7 @@ export default {
   		start:"",
       startPoint:"",
       input:"",
-      authCode:"",
+      phoneNumber:"",
       pointList:[]
   	}
   },
@@ -178,17 +178,18 @@ export default {
     submitContent(){
       console.log("点击按钮了")
       var postList=JSON.stringify(this.pointList)
-      var startPoint=this.startPoint
-      var authCode=this.authCode
+      var startPoint=this.walk_start
+      var endPoint=this.walk_end
+      var phoneNumber=this.phoneNumber
+
       console.log(JSON.stringify(postList))
       uni.postMessage({
             data: {
               order:{
-                "isrunning": true,
-                "name":"小兵x号",
                 "pointList": postList,
                 "startPoint": startPoint,
-                "authCode": authCode
+                "endPoint":endPoint,
+                "phoneNumber": phoneNumber
               }               
             }
       });
