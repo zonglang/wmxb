@@ -263,6 +263,12 @@ var postGPS=[];
 // console.log(transformList_WGS84_BD09(filter_origin_data(data)))
 // console.log(transform_object_list(transform_list_object(transformList_WGS84_BD09(filter_origin_data(data)))))
 
+app.all("*",function(req,res,next){
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
+    res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
+    next();
+})
 app.post('/transform',function (req, res) {
 	res.header('Access-Control-Allow-Origin', 'http://localhost:8080');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
@@ -330,31 +336,236 @@ app.post('/downloadGPS',function(req,res){
 
      res.end(JSON.stringify(BD09_data_obj));
 })
+
+app.post('/login',function(req,res){
+	res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
+    res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
+    // 获取post的账户和密码
+    console.log(req.body)
+    let account=req.body.account;
+    let password=req.body.password;
+    // 查询数据库内的账户密码
+    let queryResult = new Promise(function(resolve){
+    	connection.query('select * from account where account = ?',[account],function(err,result){
+	    	//查询抛出结果
+	    	resolve(result)
+	    })
+    })
+    queryResult.then(function(result){
+    	if(result[0].password==password){
+	    	res.end(JSON.stringify({"result":"success",...result[0]}))
+    	}else{
+    		res.end(JSON.stringify({"result":"fail"}))
+    	}
+    })
+    
+})
+app.post('/reg',function(req,res){
+	res.header("Access-Control-Allow-Origin","*");
+	res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
+    res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
+    //获取post的注册内容
+    let account=req.body.account;
+    let password=req.body.password;
+    let userName=req.body.userName || "未命名";
+    let identity=req.body.identity || "user";
+    let phoneNumber=req.body.phoneNumber || null;
+    // 首先判断有没有重复类型
+    let queryResult = new Promise(function(resolve){
+    	connection.query('select * from account where account = ?',[account],function(err,result){
+	    	//查询抛出结果
+	    	resolve(result)
+	    })
+    })
+    queryResult.then(function(result){
+    	//如果没有重复
+    	if(result.length==0){
+    		connection.query("INSERT INTO account (account,password,userName,identity,phoneNumber) VALUES ?"
+    			,[[[account,password,userName,identity,phoneNumber]]]
+    			,function(err,result){
+    			res.end(JSON.stringify({"result":"success"}))
+    		})
+    	}else{
+    		res.end(JSON.stringify({"result":"fail"}))
+    	}
+    })
+})
+app.post('/createOrder',function(req,res){
+	res.header("Access-Control-Allow-Origin","*");
+	res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
+    res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
+    //获取post内容
+    let startPoint = req.body.startPoint;
+    let endPoint = req.body.endPoint;
+    let phoneNumber = req.body.phoneNumber;
+    let authCode = req.body.authCode || null;
+    let state = 0;
+    let car_id = req.body.car_id;
+    let creator_id = req.body.creator_id;
+    let target_id = null;
+    let box_id = req.body.box_id;
+    //查询target_id
+    let queryResult = new Promise(function(resolve){
+    	connection.query('select user_id from account where phoneNumber = ?',[phoneNumber],function(err,result){
+    		//查询结果抛出
+    		resolve(result)
+    	})
+    })
+    queryResult.then(function(result){
+    	if(result.length!=0){
+    		target_id=result[0].user_id
+    	}
+
+    }).then(function(){
+    	connection.query("INSERT INTO order_info (startPoint,endPoint,phoneNumber,authCode,state,car_id,creator_id,target_id,box_id) VALUES ?"
+    		,[[[startPoint,endPoint,phoneNumber,authCode,state,car_id,creator_id,target_id,box_id]]]
+    		,function(err,result){
+                console.log(result)
+    			res.end(JSON.stringify(result))
+    		})
+    }).catch(function(){
+    	res.end(JSON.stringify({"result":"fail"}))
+    })
+})
+app.post('/getOrder',function(req,res){
+	res.header("Access-Control-Allow-Origin","*");
+	res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
+    res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
+    //获取post内容
+    let user_id = req.body.user_id;
+    let identity = req.body.identity;
+    let queryResult = new Promise(function(resolve){
+    	if(identity=="user"){
+    		connection.query('select * from order_info where target_id = ?',[user_id],function(err,result){
+    			//查询结果抛出
+    			resolve(result)
+    		})
+    	}else if(identity=="xiaoge"){
+    		connection.query('select * from order_info where creator_id = ?',[user_id],function(err,result){
+    			//查询结果抛出
+    			resolve(result)
+    		})
+    	}
+    })
+    queryResult.then(function(result){
+    	res.end(JSON.stringify({"result":"success","order":result}))
+    }).catch(function(){
+    	res.end(JSON.stringify({"result":"fail"}))
+    })
+})
+app.post('/updateOrder',function(req,res){
+	res.header("Access-Control-Allow-Origin","*");
+	res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
+    res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
+    //获取post内容
+    let order_id = req.body.order_id;
+    let updateContent = JSON.parse(req.body.updateContent);
+    let promiseList = []
+    //遍历updateContent进行更改操作
+    for(var prop in updateContent){
+    	let sql = `update order_info set ${prop}=${updateContent[prop]} where order_id=${order_id}`
+    	console.log(sql);
+    	let promise = new Promise(function(resolve){
+    		connection.query(sql,function(err,result){
+    			resolve()
+    		})
+    	})
+    	promiseList.push(promise)
+    }
+    //当所有的sql异步操作完成之后再进行回复
+    Promise.all(promiseList).then(function(){
+    	res.end(JSON.stringify({"result":"ok"}))
+    }).catch(function(){
+    	res.end(JSON.stringify({"result":"fail"}))
+    })
+})
+app.post('/getCar',function(req,res){
+	res.header("Access-Control-Allow-Origin","*");
+	res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
+    res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
+    //获取post内容
+    let car_id = req.body.car_id;
+    let queryResult = new Promise(function(resolve){
+    	connection.query('select * from car_info where car_id = ?',[car_id],function(err,result){
+    		//查询结果抛出
+    		resolve(result)
+    	})
+    })
+    queryResult.then(function(result){
+    	if(result.length==1){
+    		res.end(JSON.stringify({"result":"ok","car":result[0]}))
+    	}else{
+    		res.end(JSON.stringify({"result":"fail"}))
+    	}
+    })
+})
+app.post('/updateCar',function(req,res){
+	res.header("Access-Control-Allow-Origin","*");
+	res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
+    res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
+    //获取post内容
+    console.log(req.body)
+    let car_id = req.body.car_id;
+    let updateContent = JSON.parse(req.body.updateContent);
+    let promiseList = []
+    //遍历updateContent进行更改操作
+    for(var prop in updateContent){
+        let sql = `update car_info set ${prop}='${updateContent[prop]}' where car_id=${car_id}`
+        console.log(sql);
+        let promise = new Promise(function(resolve){
+            connection.query(sql,function(err,result){
+                resolve()
+            })
+        })
+        promiseList.push(promise)
+    }
+    //当所有的sql异步操作完成之后再进行回复
+    Promise.all(promiseList).then(function(){
+    	res.end(JSON.stringify({"result":"ok"}))
+    }).catch(function(){
+    	res.end(JSON.stringify({"result":"fail"}))
+    })
+})
+app.post('/updateCarOperation',function(req,res){
+    res.header("Access-Control-Allow-Origin","*");
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
+    res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
+    let operation = req.body.operation
+    let car_id = req.body.car_id
+    let sql = `update car_info set operation=${operation} where car_id=${car_id}`
+    console.log(sql)
+    new Promise(function(resolve){
+            connection.query(sql,function(err,result){
+                resolve()
+            })
+        }).then(() => {res.end(JSON.stringify({"result":"ok"}))})
+})
 // app.post('/distance',function(req,res){
 // 	res.header('Access-Control-Allow-Origin', 'http://localhost:8080');
 //     res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
 //     res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
 
-//     var url="http://api.map.baidu.com/telematics/v3/distance?waypoints=118.77147503233,32.054128923368;116.3521416286,39.965780080447;116.28215586757,39.965780080447&ak=MrSGqVgULhXQEtyBV67fPhCywrczDIjC"
-//     request(url,function(error,response,body){
-// 		if(!error && response.statusCode == 200){
-// 			// console.log(JSON.parse(body).result);
-// 			// if((JSON.parse(body).status==25)){
-// 			// 	console.log(url);
-// 			// }
-// 			console.log(body);
-// 			// console.log(JSON.parse(body))
-// 			JSON.parse(body).result.forEach(function(item){
-// 				GPSList.push({
-// 					'lng':item.x,
-// 					'lat':item.y
-// 				})
-// 			})
-// 			// GPSList=GPSList.concat(JSON.parse(body).result);
-// 		}
-// 	})
+ //    var url="http://api.map.baidu.com/telematics/v3/distance?waypoints=118.77147503233,32.054128923368;116.3521416286,39.965780080447;116.28215586757,39.965780080447&ak=MrSGqVgULhXQEtyBV67fPhCywrczDIjC"
+ //    request(url,function(error,response,body){
+	// 	if(!error && response.statusCode == 200){
+	// 		// console.log(JSON.parse(body).result);
+	// 		// if((JSON.parse(body).status==25)){
+	// 		// 	console.log(url);
+	// 		// }
+	// 		console.log(body);
+	// 		// console.log(JSON.parse(body))
+	// 		JSON.parse(body).result.forEach(function(item){
+	// 			GPSList.push({
+	// 				'lng':item.x,
+	// 				'lat':item.y
+	// 			})
+	// 		})
+	// 		// GPSList=GPSList.concat(JSON.parse(body).result);
+	// 	}
+	// })
 // })
 
-app.listen(8082, function () {
-  console.log('app is listening at port 8082...');
+app.listen(3000, function () {
+  console.log('app is listening at port 3000...');
 });

@@ -21,19 +21,39 @@ var length=orginArr.length;
     
  
 // });
-setInterval(()=>{
-				client.connect(PORT, HOST, function() {
-				    console.log('CONNECTED TO: ' + HOST + ':' + PORT);
-				    // 建立连接后立即向服务器发送数据，服务器将收到这些数据 
-				    arr=orginArr[i].split(',');
-				    var data='{"location":"'+arr[0]+','+arr[1]+'"}';
-				    i++;
-				    if(i==length){
-				    	i=0;
-				    }
-				    client.write(data);	
-					})
-			},200)
+// setInterval(()=>{
+// 				client.connect(PORT, HOST, function() {
+// 				    console.log('CONNECTED TO: ' + HOST + ':' + PORT);
+// 				    // 建立连接后立即向服务器发送数据，服务器将收到这些数据 
+// 				    arr=orginArr[i].split(',');
+// 				    var data='{"location":"'+arr[0]+','+arr[1]+'"}';
+// 				    i++;
+// 				    if(i==length){
+// 				    	i=0;
+// 				    }
+// 				    client.write(data);	
+// 					})
+// 			},200)
+
+client.connect(PORT,HOST,function(){
+	var data = {
+		"location":"30.514336,114.344421",
+		"id":"001",
+		"state":"0",
+		"boxState":"[1,1]",
+		"openState":"[0,0]",
+		"request":{
+			"name":"return",
+			"id":0
+		}
+	}
+	
+	// var data = '{"location":"3030.85662,11420.30058"}';
+	// var data = '{"getPath":""}'
+
+	var dataStr = JSON.stringify(data)
+	client.write(dataStr)
+})
 
 
 // setTimeout(function(){
