@@ -5,10 +5,21 @@
 		<!-- 以order为单位填写信息 -->
 		<!-- 表单内容有： -->
 		<el-form ref="form" :model="form" label-width="60px">
-			<el-form-item label="手机号">
-		    	<el-input v-model="form.phoneNumber"></el-input>
+			<el-form-item label="手机号:">
+		    	<el-input ref="inputNum" v-model="form.phoneNumber"></el-input>
 		  	</el-form-item>
-			<span>地址</span>
+		  	<el-form-item label="地址:">
+		    	<el-select v-model="value" placeholder="请选择"
+		    				ref="selectAddress"
+		    				@change="selectChange" >
+				    <el-option
+				      v-for="item in options"
+				      :key="item.value"
+				      :label="item.label"
+				      :value="item.value">
+				    </el-option>
+				</el-select>
+		  	</el-form-item>
 	  		<baidu-map :center="center" 
 		  				:zoom="18"
 		  				:scroll-wheel-zoom="true"
@@ -26,7 +37,7 @@
 			  	</bm-marker>
 				
 				<!-- 查找控件 -->
-		    	<bm-control :offset="{width: '100px', height: '100px'}">
+		    	<bm-control  class="bmControl" id="bmControl">
 			  	    <bm-auto-complete v-model="keyword" :sugStyle="{zIndex: 1}">
 			  	      <el-input ref="searchInput" v-model="keyword" placeholder="请输入搜索内容" clearable></el-input>
 			  	    </bm-auto-complete>
@@ -38,17 +49,9 @@
 				  	  	@markersset="getResultPosition"
 				  	  	>	
 		  	  	</bm-local-search>
-		  	  	<el-button type="primary" @click="onSubmit">打开箱门</el-button>
+		  	  	<el-button class="openButton" type="primary" @click="onSubmit">打开箱门</el-button>
       		</baidu-map>
-
 		</el-form>
-		<!-- 手机号 -->
-		<!-- 地址 -->
-		<!-- 开箱按钮 -->
-
-		<!-- 手机号 -->
-		<!-- 地址 -->
-		<!-- 开箱按钮 -->
 
 	</div>
 </template>
@@ -59,10 +62,22 @@ export default{
 	mounted:async function(){
 		// 页面传入信息为小哥的id
 		//获取小车信息
+		this.creatorId=this.$route.query.creatorid;
+		this.carId=this.$route.query.carid;
+
 		await this.getCarInfo()
 		//确定箱门id
-		this.confirmBoxId()
-
+		if(this.confirmBoxId()===false){
+			this.$message({
+	            type: 'error',
+	            message: '不能添加订单!即将自动退出'
+	         })
+			setTimeout(function(){
+				uni.navigateBack({
+		          delta: 1
+				});
+			},3000)	
+		}
 	},
 	data(){
 		return{
@@ -73,6 +88,47 @@ export default{
 				boxId:"",
 				code:""
 			},
+			options:[
+			{
+				label:"南一",
+				value:JSON.stringify({
+					"lng":114.334805,
+	  				"lat":30.514547
+				})
+			},
+			{
+				label:"南二",
+				value:JSON.stringify({
+					"lng":114.334805,
+	  				"lat":30.514352
+				})
+			},
+			{
+				label:"南三",
+				value:JSON.stringify({
+					"lng":114.334333,
+	  				"lat":30.514041
+				})
+			},
+			{
+				label:"南四",
+				value:JSON.stringify({
+					"lng":114.334244,
+	  				"lat":30.513746
+				})
+			},
+			{
+				label:"北三",
+				value:JSON.stringify({
+					"lng":114.335034,
+	  				"lat":30.516865
+				})
+			},
+			{
+				label:"自定义",
+				value:""
+			}],
+			value:"",
 			center:{
 	  			"lng":114.35100,
 	  			"lat":30.51836
@@ -91,6 +147,8 @@ export default{
 	},
 	methods:{
 		getResultPosition(res){
+			//选择器显示自定义
+	  		this.value = ""
 	  		console.log(res)
 	  		//首先去除所有函数自己画的标志
 	  		console.log("function:clearAllMarkers")
@@ -113,8 +171,14 @@ export default{
 	  	},
 	  	//当地图移动时触发的函数
 	  	moving(){
+	  		//选择器显示自定义
+	  		this.value = ""
 	  		this.markerPoint.lng = this.map.getCenter().lng;
   			this.markerPoint.lat = this.map.getCenter().lat;
+  			//移出焦点
+  			this.$refs.searchInput.blur();
+  			this.$refs.inputNum.blur();
+  			this.$refs.selectAddress.blur();
 	  	},
 	  	//点击事件
 	  	onSubmit:async function() {
@@ -138,6 +202,7 @@ export default{
 	  			}
 	  		}
 	  		this.$message('箱门已打开,请放入物品，关闭箱门');
+	  		await this.sleepTime(2000)
 	  		const loading2 = this.$loading({
 	          lock: true,
 	          text: '请关闭箱门',
@@ -184,11 +249,13 @@ export default{
 		        	}else{
 		        		this.$message({
 				            type: 'error',
-				            message: '不能继续添加订单!'
+				            message: '不能继续添加订单!即将开始配送'
 				         });
-		        		uni.navigateBack({
+		        		settimeOut(function(){
+		        			uni.navigateBack({
 					          delta: 1
-					    });
+					    	});
+		        		},3000)
 		        	}
 		        }).catch(async function(){
 		        	let operation = `'{"name":"start"}'`
@@ -254,9 +321,14 @@ export default{
 	  		return new Promise((resolve) => {
 	  			setTimeout(resolve,time)
 	  		})
+	  	},
+	  	selectChange(value){
+	  		console.log(value)
+	  		if(value !== "")
+	  			this.center = this.markerPoint = JSON.parse(value)
 	  	}
 	}
-}
+};
 </script>
 
 <style>
@@ -273,5 +345,13 @@ export default{
 	.confirmClass{
 		width:80vw !important;
 		margin:0 auto;
+	}
+	#createOrder .openButton{
+		margin: 20px auto;
+	}
+	#createOrder .bmControl{
+		text-align: center;
+		width:200px;
+		left:calc(50% - 100px) !important;
 	}
 </style>

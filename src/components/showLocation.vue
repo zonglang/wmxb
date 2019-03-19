@@ -1,14 +1,15 @@
 <template>
   <div class="showLocation">
     <baidu-map class="map" 
-		:center="{lng: 114.35100112284393, lat: 30.518365592201096}" 
+		:center="center" 
 		:zoom="18"
 		:scroll-wheel-zoom="true"
 		@ready=""
 	>
 		<bm-marker 
-			:position="location">	
+			:position="markerPoint">	
 		</bm-marker>
+
 	</baidu-map>
   </div>
 </template>
@@ -16,25 +17,43 @@
 <script>
 export default {
   name: 'showLocation',
-  mounted(){
-  	this.getNowLocation();
+  mounted:async function(){
+  	this.carId = this.$route.query.carid;
+  	while(true){
+  		await this.getCarInfo()
+  		var point = this.carInfo.location.split(",")
+  		console.log(point)
+  		this.center.lat=this.markerPoint.lat = point[0]
+  		this.center.lng=this.markerPoint.lng = point[1]
+  		await this.sleepTime(1000)
+  	}
   },
   data(){
   	return{
-  		location:"",
+  		markerPoint:{
+  			"lng":114.35100,
+  			"lat":30.51836
+  		},
+  		center:{
+  			"lng":114.35100,
+  			"lat":30.51836
+  		},
+  		carInfo:{},
+  		carId:"",
   	}
   },
   methods:{
-  	getNowLocation(){
-		setInterval(()=>{
-			this.$http.post('http://47.93.192.32:8082/nowlocation',{},{emulateJSON:true}).then(function(res){
-				// console.log(res.body);
-				if(res.body.success==true)
-					this.location=res.body.list[0];
-				
-			},function(){})
-			
-		},1000)
+  	sleepTime:function (time=1000){
+	  		return new Promise((resolve) => {
+	  			setTimeout(resolve,time)
+	  		})
+	},
+	getCarInfo:async function(){
+  		const postData = {
+  				car_id:this.carId
+  			}
+  		const result = await this.$http.post('http://www.zonglang.xin:3000/getCar',postData,{emulateJSON:true})
+  		this.carInfo=result.body.car
 	},
   }
 };
