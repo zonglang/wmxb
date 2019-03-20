@@ -338,9 +338,6 @@ app.post('/downloadGPS',function(req,res){
 })
 
 app.post('/login',function(req,res){
-	res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
-    res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
     // 获取post的账户和密码
     console.log(req.body)
     let account=req.body.account;
@@ -392,9 +389,7 @@ app.post('/reg',function(req,res){
     })
 })
 app.post('/createOrder',function(req,res){
-	res.header("Access-Control-Allow-Origin","*");
-	res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
-    res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
+	console.log("/creatOrder is invoked")
     //获取post内容
     let startPoint = req.body.startPoint;
     let endPoint = req.body.endPoint;
@@ -429,10 +424,9 @@ app.post('/createOrder',function(req,res){
     })
 })
 app.post('/getOrder',function(req,res){
-	res.header("Access-Control-Allow-Origin","*");
-	res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
-    res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
     //获取post内容
+    console.log("/getOrder is invoked")
+    console.log(req.body)
     let user_id = req.body.user_id;
     let identity = req.body.identity;
     let queryResult = new Promise(function(resolve){
@@ -455,9 +449,7 @@ app.post('/getOrder',function(req,res){
     })
 })
 app.post('/updateOrder',function(req,res){
-	res.header("Access-Control-Allow-Origin","*");
-	res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
-    res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
+	console.log("/updateOrder is invoked")
     //获取post内容
     let order_id = req.body.order_id;
     let updateContent = JSON.parse(req.body.updateContent);
@@ -481,9 +473,7 @@ app.post('/updateOrder',function(req,res){
     })
 })
 app.post('/getCar',function(req,res){
-	res.header("Access-Control-Allow-Origin","*");
-	res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
-    res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
+	console.log("/getCar is invoked")
     //获取post内容
     let car_id = req.body.car_id;
     let queryResult = new Promise(function(resolve){
@@ -501,9 +491,7 @@ app.post('/getCar',function(req,res){
     })
 })
 app.post('/updateCar',function(req,res){
-	res.header("Access-Control-Allow-Origin","*");
-	res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
-    res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
+	console.log("/updateCar is invoked")
     //获取post内容
     console.log(req.body)
     let car_id = req.body.car_id;
