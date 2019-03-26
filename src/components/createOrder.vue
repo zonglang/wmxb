@@ -1,13 +1,14 @@
 <template>	
 	<div id="createOrder">
-		<!-- 小哥要录入信息 -->
-		<h1 class="title">填写订单信息</h1>
-		<!-- 以order为单位填写信息 -->
-		<!-- 表单内容有： -->
-		<el-form ref="form" :model="form" label-width="60px">
+		<el-form class="form" :model="form" label-width="60px">
 			<el-form-item label="手机号:">
-		    	<el-input ref="inputNum" v-model="form.phoneNumber"></el-input>
+		    	<el-input ref="numInput" v-model="form.phoneNumber" placeholder="请填写收货手机号"></el-input>
 		  	</el-form-item>
+		  	<el-form-item label="联系人:">
+		    	<el-input ref="nameInput" v-model="form.targetName" placeholder="请填写收货人的姓名"></el-input>
+		  	</el-form-item>
+		    <el-radio v-model="form.targetSex" label="male" border>小哥哥</el-radio>
+  			<el-radio v-model="form.targetSex" label="female" border style="margin:0 0 10px 0">小姐姐</el-radio>
 		  	<el-form-item label="地址:">
 		    	<el-select v-model="value" placeholder="请选择"
 		    				ref="selectAddress"
@@ -20,7 +21,8 @@
 				    </el-option>
 				</el-select>
 		  	</el-form-item>
-	  		<baidu-map :center="center" 
+		</el-form>
+		<baidu-map :center="center" 
 		  				:zoom="18"
 		  				:scroll-wheel-zoom="true"
 		          		:high-resolution="false"
@@ -28,31 +30,29 @@
 		          		@moving="moving"
 		          		class="map">
 
-				<!-- 自定义的标记点 -->
-		        <bm-marker 
-			  	  	:position="markerPoint"
-			  	  	:dragging="false"
-			  	  	:massClear="false"
-			  	  	>
-			  	</bm-marker>
-				
-				<!-- 查找控件 -->
-		    	<bm-control  class="bmControl" id="bmControl">
-			  	    <bm-auto-complete v-model="keyword" :sugStyle="{zIndex: 1}">
-			  	      <el-input ref="searchInput" v-model="keyword" placeholder="请输入搜索内容" clearable></el-input>
-			  	    </bm-auto-complete>
-		  	 	</bm-control>
-		  	 	<bm-local-search 
-				  	  	:keyword="keyword" 
-				  	  	:auto-viewport="true" 
-				  	  	:panel="false" 
-				  	  	@markersset="getResultPosition"
-				  	  	>	
-		  	  	</bm-local-search>
-		  	  	<el-button class="openButton" type="primary" @click="onSubmit">打开箱门</el-button>
-      		</baidu-map>
-		</el-form>
-
+			<!-- 自定义的标记点 -->
+	        <bm-marker 
+		  	  	:position="markerPoint"
+		  	  	:dragging="false"
+		  	  	:massClear="false"
+		  	  	>
+		  	</bm-marker>
+			
+			<!-- 查找控件 -->
+	    	<bm-control  class="bmControl" id="bmControl">
+		  	    <bm-auto-complete v-model="keyword" :sugStyle="{zIndex: 1}">
+		  	      <el-input ref="searchInput" v-model="keyword" placeholder="请输入搜索内容" clearable></el-input>
+		  	    </bm-auto-complete>
+	  	 	</bm-control>
+	  	 	<bm-local-search 
+			  	  	:keyword="keyword" 
+			  	  	:auto-viewport="true" 
+			  	  	:panel="false" 
+			  	  	@markersset="getResultPosition"
+			  	  	>	
+	  	  	</bm-local-search>
+	  	  	<el-button class="openButton" type="primary" @click="onSubmit" >打开箱门</el-button>
+  		</baidu-map>
 	</div>
 </template>
 
@@ -73,9 +73,8 @@ export default{
 	            message: '不能添加订单!即将自动退出'
 	         })
 			setTimeout(function(){
-				uni.navigateBack({
-		          delta: 1
-				});
+				// 跳转回扫码页面
+				this.$router.push({path:'/showLocation'})
 			},3000)	
 		}
 	},
@@ -83,6 +82,8 @@ export default{
 		return{
 			form:{
 				phoneNumber:"",
+				targetName:"",
+				targetSex:"male",
 				startPoint:"",
 				endPoint:"",
 				boxId:"",
@@ -176,8 +177,8 @@ export default{
 	  		this.markerPoint.lng = this.map.getCenter().lng;
   			this.markerPoint.lat = this.map.getCenter().lat;
   			//移出焦点
-  			this.$refs.searchInput.blur();
-  			this.$refs.inputNum.blur();
+  			this.$refs.numInput.blur();
+  			this.$refs.nameInput.blur();
   			this.$refs.selectAddress.blur();
 	  	},
 	  	//点击事件
@@ -306,16 +307,16 @@ export default{
 	  	},
 	  	confirmBoxId(){
 	  		//确定箱门id
-			const box_state = eval(this.carInfo.box_state)
-			for(var i=0;i<box_state.length;i++){
-				if(box_state[i]==0){
-					this.form.boxId=i
-					return true
+			const box_state = eval(this.carInfo.box_state) || []
+			let flag = false
+			//选出没有装东西的箱门id
+			box_state.forEach(item ==> {
+				if(!flag && item == 0){
+					this.form.boxId = item
+					flag = true
 				}
-			}
-			if(i==box_state){
-				return false;
-			}
+			})
+			return flag
 	  	},
 	  	sleepTime:function (time=1000){
 	  		return new Promise((resolve) => {
@@ -333,14 +334,19 @@ export default{
 
 <style>
 	#createOrder{
+		
+	}
+	.form{
 		padding:20px;
+		height:30vh;
+		min-height: 240px;
 	}
 	.title{
 		margin:16px auto;
 	}
 	.map{
-		height:300px;
-		width:100%;
+		height:70vh;
+		width:100vw;
 	}
 	.confirmClass{
 		width:80vw !important;
