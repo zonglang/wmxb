@@ -3,15 +3,12 @@ import App from './App.vue'
 import BaiduMap from 'vue-baidu-map';
 import VueResource from 'vue-resource';
 import router from './router'
-import MintUI from 'mint-ui';
-import 'mint-ui/lib/style.css'
 import ElementUI from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
 import store from './store'  
 
 Vue.prototype.$store = store
-Vue.use(MintUI);
-Vue.use(ElementUI)
+Vue.use(ElementUI);
 Vue.use(VueResource);
 Vue.use(router);
 Vue.use(BaiduMap, {

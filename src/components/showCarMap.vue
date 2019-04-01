@@ -1,6 +1,7 @@
 <template>
 	<div class="showCarMap">
-		
+		<baidu-map
+			>
 		<bm-marker 
 			v-for="(item,index) in markerList"
 			:key="index"
@@ -140,7 +141,7 @@ export default{
 };
 </script>
 
-<style>
+<style scoped>
 .showCarMap {
 	width:100%;
 }

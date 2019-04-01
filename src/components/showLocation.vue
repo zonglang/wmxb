@@ -4,7 +4,7 @@
 		:center="center" 
 		:zoom="17"
 		:scroll-wheel-zoom="true"
-		@ready=""
+    @ready="getMap"
 	>
     <!-- 这个点显示当前位置 -->
 		<bm-marker 
@@ -36,24 +36,25 @@
 </template>
 
 <script>
+const gcoord = require('gcoord');
 export default {
   name: 'showLocation',
   mounted:async function(){
   	this.carId = this.$route.query.carid || ""
     this.creatorId = this.$route.query.creatorid || ""
+    document.title = "欢迎使用外卖小兵"
     console.log("receive carid:",this.carId)
-    console.log("receive location:",this.location)
     //在这个异步事件中阻塞循环
     //每隔一段时间从服务器获取一次数据
     const timeout = 1000
-  	while(true){
-  		await this.getCarInfo()
-  		var point = this.carInfo.location.split(",")
-  		// console.log(point)
-  		this.center.lat=this.markerPoint.lat = point[0]
-  		this.center.lng=this.markerPoint.lng = point[1]
-  		await this.sleepTime(timeout)
-  	}
+  	// while(true){
+  	// 	await this.getCarInfo()
+  	// 	var point = this.carInfo.location.split(",")
+  	// 	// console.log(point)
+  	// 	this.center.lat=this.markerPoint.lat = point[0]
+  	// 	this.center.lng=this.markerPoint.lng = point[1]
+  	// 	await this.sleepTime(timeout)
+  	// }
   },
   data(){
   	return{
@@ -68,12 +69,15 @@ export default {
   		carInfo:{},
   		carId:"",
       creatorId:"",
-      location:"",
       barcode:null,
-      scanText:"扫码用车"
+      scanText:"扫码用车",
+      map:""
   	}
   },
   methods:{
+    getMap:function({map}){
+      this.map = map
+    },
   	sleepTime:async function (time=1000){
 	  		return new Promise((resolve) => {
 	  			setTimeout(resolve,time)
@@ -97,18 +101,8 @@ export default {
       }
     },
     createBarcode(){
-      this.barcode = plus.barcode.create('barcode', [plus.barcode.QR], {
-          top:'100px',
-          left:'0px',
-          width: '100%',
-          height: '500px',
-          position: 'static'
-        });
-      this.barcode.onmarked = onmarked;
-      plus.webview.currentWebview().append(this.barcode);
-      this.barcode.start();
       // 扫码成功回调
-      function onmarked(type, result) {
+      var onmarked = (type, result) => {
         var text = '未知: ';
         switch(type){
           case plus.barcode.QR:
@@ -122,7 +116,21 @@ export default {
           break;
         }
         console.log( text+result )
+        this.barcode.close()
+        this.$router.push({path:'/createOrder', query:{creatorid:"1",carid:"001"}})
       }
+      this.barcode = plus.barcode.create('barcode', [plus.barcode.QR], {
+          top:'100px',
+          left:'0px',
+          width: '100%',
+          height: '500px',
+          position: 'static'
+        });
+      this.barcode.onmarked = onmarked;
+      plus.webview.currentWebview().append(this.barcode);
+      this.barcode.start();
+
+      
     },
     closeBarcode(){
       this.barcode.close()
@@ -130,14 +138,22 @@ export default {
     },
     locationBtn(){
       console.log("点击了定位按钮")
-      plus.geolocation.getCurrentPosition(function(p){
-          console.log('Geolocation\nLatitude:' + p.coords.latitude + '\nLongitude:' + p.coords.longitude + '\nAltitude:' + p.coords.altitude);
+      plus.geolocation.getCurrentPosition((p) => {
+          var lat,lng
+          //解构赋值
+          [lng,lat]=this.useGcoord(p.coords.longitude,p.coords.latitude)
+          this.markerPoint.lng = lng
+          this.markerPoint.lat = lat
+          var center = new BMap.Point(lng,lat)
+          this.map.setCenter(center)
+          console.log('Geolocation\nLatitude:' + lat + '\nLongitude:' + lng + '\n');
         }, function(e){
           console.log('Geolocation error: ' + e.message);
         });
     },
     moreBtn(){
       console.log("点击了更多按钮")
+      this.$router.push({path:'/showOrder'})
     },
     helpBtn(){
       console.log("点击了帮助按钮")
@@ -153,6 +169,14 @@ export default {
       uni.navigateTo({
           url: '/pages/ucenter/ucenter'
       });
+    },
+    useGcoord:function(lng,lat){
+      const result = gcoord.transform(
+          [lng,lat],
+          gcoord.WGS84,
+          gcoord.BD09
+        )
+      return [result[0].toFixed(5),result[1].toFixed(5)]
     }
   }
 };

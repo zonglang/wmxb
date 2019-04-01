@@ -1,6 +1,6 @@
 <template>
   <div class="searchLocation">
-    <div class="header">
+    <!-- <div class="header">
       <el-form>
         <el-form-item label="小兵出发位置:">
           <el-select v-model="startPoint" :clearable="true" placeholder="请选择起点">
@@ -22,70 +22,42 @@
           </el-input>
         </el-form-item>
       </el-form>
-    </div>
+    </div> -->
     
-  	<baidu-map :center="center" 
+  	<baidu-map :center="walk_end" 
   				:zoom="18"
   				:scroll-wheel-zoom="true"
           :high-resolution="false"
-  				@ready="getMap"
-  				@moving="dragging"
-  				@dragend="dragend"
-          @moveend="moveend">
+  				>
 
-  		<!-- {{location}}
-  		id:{{id}} -->
-      
-  	  <bm-marker 
-  	  	:position="location"
-  	  	:dragging="false"
-  	  	:massClear="false"
-  	  	>
-  	  </bm-marker>
-  	  <bm-view class="map">
-  	  </bm-view>
+        <bm-view class="map">
+        </bm-view>
 
-  		<bm-walking 
-          v-if="startPoint !=''"
-          :start="walk_start" 
-          :end="walk_end" 
-          :autoViewport="false"
-          :panel="false"
-          @searchcomplete="searchcomplete">
-      </bm-walking>
-
-  	  <bm-control :offset="{width: '100px', height: '100px'}">
-  	    <bm-auto-complete v-model="keyword" :sugStyle="{zIndex: 1}" @confirm="cancelFocus">
-  	      <!-- <search-field placeholder="请输入地名关键字"></search-field>  --><!-- 这里指代一个自定义搜索框组件 -->
-  	      <el-input ref="searchInput" v-model="keyword" placeholder="请输入搜索内容" clearable></el-input>
-  	    </bm-auto-complete>
-  	  </bm-control>
-  	  <bm-local-search 
-  	  	:keyword="keyword" 
-  	  	:auto-viewport="true" 
-  	  	:panel="false" 
-  	  	@markersset="getResultPosition"
-  	  	>	
-  	  </bm-local-search>
-  	</baidu-map>
-    <el-button type="primary" @click="submitContent">提交</el-button>
+    		<bm-walking 
+            :start="walk_start" 
+            :end="walk_end" 
+            :autoViewport="false"
+            :panel="false"
+            >
+        </bm-walking>
+    </baidu-map>
   </div>
 </template>
 
 <script>
-export default {
+export default{
   name: 'searchLocation',
   mounted(){
-  		this.start=this.$route.query.start;
-  		if(this.start==1){
-  			//南门
-  			this.walk_start.lng=114.350067;
-  			this.walk_start.lat=30.517362;
-  		}else if(this.start==2){
-  			//东门
-  			this.walk_start.lng=114.351513;
-  			this.walk_start.lat=30.51828;
-  		}
+  		// this.start=this.$route.query.start;
+  		// if(this.start==1){
+  		// 	//南门
+  		// 	this.walk_start.lng=114.350067;
+  		// 	this.walk_start.lat=30.517362;
+  		// }else if(this.start==2){
+  		// 	//东门
+  		// 	this.walk_start.lng=114.351513;
+  		// 	this.walk_start.lat=30.51828;
+  		// }
   },
   data(){
   	return{
@@ -95,12 +67,12 @@ export default {
   			"lat":30.518365592201096
   		},
   		walk_start:{
-  			"lng":114.35100112284393,
-  			"lat":30.518365592201096
+  			"lng":114.336368,
+  			"lat":30.516908
   		},
   		walk_end:{
-  			"lng":114.35100112284393,
-  			"lat":30.518365592201096
+  			"lng":114.340958,
+  			"lat":30.51767
   		},
   		center:{
   			"lng":114.35100112284393,
@@ -207,16 +179,12 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 .searchLocation{
-	width:100%;
-	height: 100vh;
+	
 }
-.header{
-  height: 18vh;
-  padding: 15px;
-}
+
 .map{
 	/*height: 100vh;*/
-	height:60vh;
-	width:100vw;
+	height:100px;
+	width:100px;
 }
 </style>

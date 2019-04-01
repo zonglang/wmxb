@@ -56,6 +56,8 @@ client.connect(PORT,HOST,function(){
 })
 
 
+
+
 // setTimeout(function(){
 //     	client.connect(PORT, HOST, function() {
 // 		    console.log('CONNECTED TO: ' + HOST + ':' + PORT);
