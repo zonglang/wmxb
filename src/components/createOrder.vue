@@ -1,27 +1,30 @@
 <template>	
 	<div id="createOrder">
-		<el-form class="form" :model="form" label-width="60px">
-			<el-form-item label="手机号:">
-		    	<el-input ref="numInput" v-model="form.phoneNumber" placeholder="请填写收货手机号"></el-input>
-		  	</el-form-item>
-		  	<el-form-item label="联系人:">
-		    	<el-input ref="nameInput" v-model="form.targetName" placeholder="请填写收货人的姓名"></el-input>
-		  	</el-form-item>
-		    <el-radio v-model="form.targetSex" label="male" border>小哥哥</el-radio>
-  			<el-radio v-model="form.targetSex" label="female" border style="margin:0 0 10px 0">小姐姐</el-radio>
-		  	<el-form-item label="地址:">
-		    	<el-select v-model="value" placeholder="请选择"
-		    				ref="selectAddress"
-		    				@change="selectChange" >
-				    <el-option
-				      v-for="item in options"
-				      :key="item.value"
-				      :label="item.label"
-				      :value="item.value">
-				    </el-option>
-				</el-select>
-		  	</el-form-item>
-		</el-form>
+		<el-card class="box-card">
+		  	<el-form class="form" :model="form" label-width="60px">
+				<el-form-item label="手机号:">
+			    	<el-input ref="numInput" v-model="form.phoneNumber" placeholder="请填写收货手机号"></el-input>
+			  	</el-form-item>
+			  	<el-form-item label="联系人:">
+			    	<el-input ref="nameInput" v-model="form.targetName" placeholder="请填写收货人的姓名"></el-input>
+			  	</el-form-item>
+			    <el-radio v-model="form.targetSex" label="male" border>小哥哥</el-radio>
+	  			<el-radio v-model="form.targetSex" label="female" border style="margin:0 0 10px 0">小姐姐</el-radio>
+			  	<el-form-item label="地址:">
+			    	<el-select v-model="value" placeholder="请选择"
+			    				ref="selectAddress"
+			    				@change="selectChange" >
+					    <el-option
+					      v-for="item in options"
+					      :key="item.value"
+					      :label="item.label"
+					      :value="item.value">
+					    </el-option>
+					</el-select>
+			  	</el-form-item>
+			</el-form>
+		</el-card>
+		
 		<baidu-map :center="center" 
 		  				:zoom="18"
 		  				:scroll-wheel-zoom="true"
@@ -62,17 +65,18 @@ export default{
 	mounted:async function(){
 		// 页面传入信息为小哥的id
 		//获取小车信息
-		this.creatorId=this.$route.query.creatorid;
-		this.carId=this.$route.query.carid;
-
+		this.creatorId=this.$route.query.creatorid || 2;
+		this.carId=this.$route.query.carid || "001";
+		document.title = "创建订单"
 		await this.getCarInfo()
 		//确定箱门id
-		if(this.confirmBoxId()===false){
+		if(await this.confirmBoxId()===false){
 			this.$message({
 	            type: 'error',
 	            message: '不能添加订单!即将自动退出'
 	         })
-			setTimeout(function(){
+			//这里使用箭头函数改变this指向
+			setTimeout(() => {
 				// 跳转回扫码页面
 				this.$router.push({path:'/showLocation'})
 			},3000)	
@@ -243,8 +247,8 @@ export default{
 		          type: 'info',
 		          center: true,
 		          customClass:"confirmClass"
-		        }).then(() => {
-		        	if(this.confirmBoxId()==true){
+		        }).then(async () => {
+		        	if(await this.confirmBoxId()==true){
 		        		this.form.phoneNumber=""
 		        		this.keyword=""
 		        	}else{
@@ -258,9 +262,9 @@ export default{
 					    	});
 		        		},3000)
 		        	}
-		        }).catch(async function(){
+		        }).catch(async () => {
 		        	let operation = `'{"name":"start"}'`
-		          	await _this.updateCarOperation(operation)
+		          	await this.updateCarOperation(operation)
 		          	uni.navigateBack({
 					          delta: 1
 					});
@@ -305,12 +309,13 @@ export default{
 	  		const result = await this.$http.post("http://www.zonglang.xin:3000/createOrder",postData,{emulateJSON:true})
 	  		return result.body.insertId
 	  	},
-	  	confirmBoxId(){
+	  	confirmBoxId:async function(){
 	  		//确定箱门id
+	  		await this.getCarInfo()
 			const box_state = eval(this.carInfo.box_state) || []
 			let flag = false
 			//选出没有装东西的箱门id
-			box_state.forEach(item ==> {
+			box_state.forEach(item => {
 				if(!flag && item == 0){
 					this.form.boxId = item
 					flag = true
@@ -334,26 +339,28 @@ export default{
 
 <style>
 	#createOrder{
-		
+		height: 100%;
+		overflow: hidden;
 	}
-	.form{
-		padding:20px;
-		height:30vh;
-		min-height: 240px;
+	.box-card{
+		margin:20px 10px;
 	}
 	.title{
 		margin:16px auto;
 	}
 	.map{
-		height:70vh;
+		height:60vh;
 		width:100vw;
 	}
 	.confirmClass{
-		width:80vw !important;
+		width:300px !important;
 		margin:0 auto;
 	}
 	#createOrder .openButton{
-		margin: 20px auto;
+		position:fixed;
+		width: 100px;
+		bottom:20px;
+		left:calc(50% - 50px);
 	}
 	#createOrder .bmControl{
 		text-align: center;
