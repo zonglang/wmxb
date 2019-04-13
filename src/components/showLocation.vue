@@ -44,17 +44,11 @@ export default {
     this.creatorId = this.$route.query.creatorid || ""
     document.title = "欢迎使用外卖小兵"
     console.log("receive carid:",this.carId)
+    //初始化定位
+    this.locationBtn()
     //在这个异步事件中阻塞循环
     //每隔一段时间从服务器获取一次数据
     const timeout = 1000
-  	// while(true){
-  	// 	await this.getCarInfo()
-  	// 	var point = this.carInfo.location.split(",")
-  	// 	// console.log(point)
-  	// 	this.center.lat=this.markerPoint.lat = point[0]
-  	// 	this.center.lng=this.markerPoint.lng = point[1]
-  	// 	await this.sleepTime(timeout)
-  	// }
   },
   data(){
   	return{
@@ -102,35 +96,28 @@ export default {
     },
     createBarcode(){
       // 扫码成功回调
-      var onmarked = (type, result) => {
-        var text = '未知: ';
-        switch(type){
-          case plus.barcode.QR:
-          text = 'QR: ';
-          break;
-          case plus.barcode.EAN13:
-          text = 'EAN13: ';
-          break;
-          case plus.barcode.EAN8:
-          text = 'EAN8: ';
-          break;
+      if(typeof(plus) != "undefined"){
+        var onmarked = (type, result) => {
+        console.log("扫码成功，数据如下:")
+        console.log(result)
+        if(type === plus.barcode.QR){
+          this.barcode.close()
+          this.$router.push({path:'/createOrder', query:{creatorid:"1",carid:"001"}})
+          }
         }
-        console.log( text+result )
-        this.barcode.close()
+        this.barcode = plus.barcode.create('barcode', [plus.barcode.QR], {
+            bottom:'100px',
+            left:'0px',
+            width: '100%',
+            height: '500px',
+            position: 'stax`tic'
+        });
+        this.barcode.onmarked = onmarked;
+        plus.webview.currentWebview().append(this.barcode);
+        this.barcode.start();
+      }else{
         this.$router.push({path:'/createOrder', query:{creatorid:"1",carid:"001"}})
       }
-      this.barcode = plus.barcode.create('barcode', [plus.barcode.QR], {
-          top:'100px',
-          left:'0px',
-          width: '100%',
-          height: '500px',
-          position: 'static'
-        });
-      this.barcode.onmarked = onmarked;
-      plus.webview.currentWebview().append(this.barcode);
-      this.barcode.start();
-
-      
     },
     closeBarcode(){
       this.barcode.close()
@@ -138,7 +125,8 @@ export default {
     },
     locationBtn(){
       console.log("点击了定位按钮")
-      plus.geolocation.getCurrentPosition((p) => {
+      if(typeof(plus) != "undefined"){
+         plus.geolocation.getCurrentPosition((p) => {
           var lat,lng
           //解构赋值
           [lng,lat]=this.useGcoord(p.coords.longitude,p.coords.latitude)
@@ -150,6 +138,7 @@ export default {
         }, function(e){
           console.log('Geolocation error: ' + e.message);
         });
+      }
     },
     moreBtn(){
       console.log("点击了更多按钮")
@@ -157,12 +146,6 @@ export default {
     },
     helpBtn(){
       console.log("点击了帮助按钮")
-      // uni.postMessage({
-      //       data: {
-      //         "operation":"help"   
-      //       }
-      // });
-      // uni.navigateBack({animationDuration: 0})
     },
     userBtn(){
       console.log("点击了用户按钮")

@@ -400,6 +400,8 @@ app.post('/createOrder',function(req,res){
     let creator_id = req.body.creator_id;
     let target_id = null;
     let box_id = req.body.box_id;
+    let target_name = req.body.target_name;
+    let target_sex = req.body.target_sex;
     //查询target_id
     let queryResult = new Promise(function(resolve){
     	connection.query('select user_id from account where phoneNumber = ?',[phoneNumber],function(err,result){
@@ -413,8 +415,8 @@ app.post('/createOrder',function(req,res){
     	}
 
     }).then(function(){
-    	connection.query("INSERT INTO order_info (startPoint,endPoint,phoneNumber,authCode,state,car_id,creator_id,target_id,box_id) VALUES ?"
-    		,[[[startPoint,endPoint,phoneNumber,authCode,state,car_id,creator_id,target_id,box_id]]]
+    	connection.query("INSERT INTO order_info (startPoint,endPoint,phoneNumber,authCode,state,car_id,creator_id,target_id,box_id,target_name,target_sex) VALUES ?"
+    		,[[[startPoint,endPoint,phoneNumber,authCode,state,car_id,creator_id,target_id,box_id,target_name,target_sex]]]
     		,function(err,result){
                 console.log(result)
     			res.end(JSON.stringify(result))

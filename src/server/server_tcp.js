@@ -1,4 +1,3 @@
-var net = require('net');
 var mysql = require('mysql');
 var request = require('request');
 const gcoord = require('gcoord');
@@ -17,7 +16,8 @@ var PORT=10380;
 function transform(value){
     let origin = value.split(',')
     let result = gcoord.transform(
-      [Number(origin[0]), Number(origin[1])],    // 经纬度坐标
+      [Number(origin[0]), Number(origin[1])],    // 经纬度坐标。。。var net = require('net');
+
       gcoord.WGS84,               // 当前坐标系
       gcoord.BD09                 // 目标坐标系
     );

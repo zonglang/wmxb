@@ -8,8 +8,8 @@
 			  	<el-form-item label="联系人:">
 			    	<el-input ref="nameInput" v-model="form.targetName" placeholder="请填写收货人的姓名"></el-input>
 			  	</el-form-item>
-			    <el-radio v-model="form.targetSex" label="male" border>小哥哥</el-radio>
-	  			<el-radio v-model="form.targetSex" label="female" border style="margin:0 0 10px 0">小姐姐</el-radio>
+			    <el-radio v-model="form.targetSex" label="小哥哥" border>小哥哥</el-radio>
+	  			<el-radio v-model="form.targetSex" label="小姐姐" border style="margin:0 0 10px 0">小姐姐</el-radio>
 			  	<el-form-item label="地址:">
 			    	<el-select v-model="value" placeholder="请选择"
 			    				ref="selectAddress"
@@ -44,7 +44,7 @@
 			<!-- 查找控件 -->
 	    	<bm-control  class="bmControl" id="bmControl">
 		  	    <bm-auto-complete v-model="keyword" :sugStyle="{zIndex: 1}">
-		  	      <el-input ref="searchInput" v-model="keyword" placeholder="请输入搜索内容" clearable></el-input>
+		  	      <el-input ref="searchInput" v-model="keyword" placeholder="请输入搜索地点" clearable></el-input>
 		  	    </bm-auto-complete>
 	  	 	</bm-control>
 	  	 	<bm-local-search 
@@ -87,7 +87,7 @@ export default{
 			form:{
 				phoneNumber:"",
 				targetName:"",
-				targetSex:"male",
+				targetSex:"小哥哥",
 				startPoint:"",
 				endPoint:"",
 				boxId:"",
@@ -95,35 +95,49 @@ export default{
 			},
 			options:[
 			{
-				label:"南一",
+				label:"新一教学楼",
+				value:JSON.stringify({
+					"lng":114.340396,
+	  				"lat":30.51758
+				})
+			},
+			{
+				label:"新二教学楼",
+				value:JSON.stringify({
+					"lng":114.341846,
+	  				"lat":30.517331
+				})
+			},
+			{
+				label:"南一宿舍",
 				value:JSON.stringify({
 					"lng":114.334805,
 	  				"lat":30.514547
 				})
 			},
 			{
-				label:"南二",
+				label:"南二宿舍",
 				value:JSON.stringify({
 					"lng":114.334805,
 	  				"lat":30.514352
 				})
 			},
 			{
-				label:"南三",
+				label:"南三宿舍",
 				value:JSON.stringify({
 					"lng":114.334333,
 	  				"lat":30.514041
 				})
 			},
 			{
-				label:"南四",
+				label:"南四宿舍",
 				value:JSON.stringify({
 					"lng":114.334244,
 	  				"lat":30.513746
 				})
 			},
 			{
-				label:"北三",
+				label:"北三宿舍",
 				value:JSON.stringify({
 					"lng":114.335034,
 	  				"lat":30.516865
@@ -197,15 +211,19 @@ export default{
 	          background: 'rgba(0, 0, 0, 0.7)'
 	        });
 	  		await this.updateCarOperation(operation)
-	  		while(true){
-	  			await this.sleepTime(1000)
-	  			await this.getCarInfo()
-	  			const open_state = eval(this.carInfo.open_state)
-	  			if(open_state[this.form.boxId]==1){
-	  				await loading1.close()
-	  				break
-	  			}
-	  		}
+	  		//使用while循环获取服务器数据
+	  		// while(true){
+	  		// 	await this.sleepTime(1000)
+	  		// 	await this.getCarInfo()
+	  		// 	const open_state = eval(this.carInfo.open_state)
+	  		// 	if(open_state[this.form.boxId]==1){
+	  		// 		await loading1.close()
+	  		// 		break
+	  		// 	}
+	  		// }
+	  		// 由于小车和服务器没有连上，所以三秒后继续
+	  		await this.sleepTime(3000)
+	  		loading1.close()
 	  		this.$message('箱门已打开,请放入物品，关闭箱门');
 	  		await this.sleepTime(2000)
 	  		const loading2 = this.$loading({
@@ -214,15 +232,19 @@ export default{
 	          spinner: 'el-icon-loading',
 	          background: 'rgba(0, 0, 0, 0.7)'
 	        });
-	        while(true){
-	        	await this.sleepTime(1000)
-	  			await this.getCarInfo()
-	  			const open_state = eval(this.carInfo.open_state)
-	  			if(open_state[this.form.boxId]==0){
-	  				await loading2.close()
-	  				break
-	  			}
-	  		}
+	        //使用while循环获取服务器数据
+	    //     while(true){
+	    //     	await this.sleepTime(1000)
+	  		// 	await this.getCarInfo()
+	  		// 	const open_state = eval(this.carInfo.open_state)
+	  		// 	if(open_state[this.form.boxId]==0){
+	  		// 		await loading2.close()
+	  		// 		break
+	  		// 	}
+	  		// }
+	  		// 由于小车和服务器没有连上，所以三秒后继续
+	  		await this.sleepTime(3000)
+	  		loading2.close()
 	  		this.form.startPoint=this.carInfo.location
 	  		this.form.endPoint=`${this.markerPoint.lat},${this.markerPoint.lng}`
 	  		this.form.code = "1234"
@@ -265,9 +287,7 @@ export default{
 		        }).catch(async () => {
 		        	let operation = `'{"name":"start"}'`
 		          	await this.updateCarOperation(operation)
-		          	uni.navigateBack({
-					          delta: 1
-					});
+		          	this.$router.push({path:'/showLocation'})
 		        });
 
 
@@ -303,7 +323,9 @@ export default{
 	  			phoneNumber:this.form.phoneNumber,
 	  			authCode:this.form.code,
 	  			creator_id:this.creatorId,
-	  			box_id:this.form.boxId
+	  			box_id:this.form.boxId,
+	  			target_name:this.form.targetName,
+	  			target_sex:this.form.targetSex
 	  		}
 	  		console.log(postData)
 	  		const result = await this.$http.post("http://www.zonglang.xin:3000/createOrder",postData,{emulateJSON:true})

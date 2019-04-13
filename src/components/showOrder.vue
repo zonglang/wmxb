@@ -5,9 +5,13 @@
 		</div>
 		<el-card class="box-card"
 				v-for="order in orders">
-		  {{!order.target_name?"无姓名":order.target_name}}
-		  {{!order.phoneNumber?"无手机号":order.phoneNumber}}
-		  <el-button type="success" plain @click="handleClick()">查看详情</el-button>
+				<span>
+		  			{{!order.target_name?"无姓名":order.target_name}}
+				</span>
+				<span>
+		  			{{!order.phoneNumber?"无手机号":order.phoneNumber}}
+				</span>
+		  		<el-button type="success" plain @click="handleClick()">查看详情</el-button>
 		</el-card>
 	</div>
 </template>
@@ -52,6 +56,8 @@ export default{
 }
 .box-card{
 	margin:20px 10px;
+	display: flex;
+	justify-content: space-between;
 }
 .close{
 	position:fixed;

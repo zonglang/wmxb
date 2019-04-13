@@ -5,13 +5,21 @@
 		:zoom="19"
 		:scroll-wheel-zoom="true"
 		>
-			<bm-marker 
+			<!-- <bm-marker 
 				:position="markerPoint"
 				:icon="{url: 'http://www.zonglang.xin:8082/soul/yellowcar.png', size: {width: 100, height: 100}}"
 				:offset="{width: 15, height: 15}"
 				animation="BMAP_ANIMATION_BOUNCE">
-			</bm-marker>
+			</bm-marker> -->
+			<bm-overlay
+			    pane="labelPane"
+			    class="yellowcar"
+			    @draw="draw">
 
+			    <div>
+		            <img src="http://www.zonglang.xin:8082/soul/yellowcar.png"  width="60px">
+		        </div>
+		  	</bm-overlay>
 		</baidu-map>
 		
 		<div class="block">
@@ -29,8 +37,8 @@
 		  </el-timeline>
 		</div>
 		<div class="detail">
-			<div><i class="el-icon-news"></i> 收货人：郝帅鹏</div>
-			<div><i class="el-icon-mobile-phone"></i> 手机号:13163236886</div>
+			<div><i class="el-icon-news"></i> 收货人：丁蔚</div>
+			<div><i class="el-icon-mobile-phone"></i> 手机号:13163237919</div>
 			<div><i class="el-icon-message"></i> 验证码：1537</div>
 		</div>
 		<div class="close">
@@ -54,6 +62,8 @@ export default{
 	  			"lng":114.35100,
 	  			"lat":30.51836
 	  		},
+	  		sendFlag:false,
+	  		returnFlag:false
 		}
 	},
 	mounted:async function(){
@@ -73,6 +83,18 @@ export default{
     		var point = this.carInfo.location.split(",")
     		this.center.lat = this.markerPoint.lat = point[0]
     		this.center.lng = this.markerPoint.lng = point[1]
+    		if(this.carInfo.car_state == 2 && !this.sendFlag){
+    			this.$message('已发送短信，等待取餐')
+    			this.sendFlag = true
+    		}
+    		if(this.carInfo.car_state == 3 && !this.returnFlag){
+    			this.$message('此次配送完成！正在返回')
+    			this.returnFlag = true
+    		}
+    		if(this.carInfo.car_state == 1){
+    			this.sendFlag = false
+    			this.returnFlag = false
+    		}
   		},
   		sleepTime:async function(timeout=1000){
   			return new Promise(resolve => setTimeout(resolve,timeout))
@@ -80,7 +102,13 @@ export default{
   		close(){
   			console.log("点击关闭")
 			this.$router.back(-1)
-  		}
+  		},
+  		draw ({el, BMap, map}) {
+	        var point = this.markerPoint
+	        const pixel = map.pointToOverlayPixel(new BMap.Point(point.lng, point.lat))
+	        el.style.left = pixel.x - 30 + 'px'
+	        el.style.top = pixel.y - 75 + 'px'
+	    },
 	},
 	computed:{
 		stepItems(){
@@ -138,5 +166,22 @@ export default{
 	font-size: 28px;
 	padding-right: 20px;
 	text-align: right;
+}
+.yellowcar{
+  background: rgb(100, 95, 87);
+  position: absolute;
+  border-radius: 50%;
+}
+.yellowcar:after{
+  content:"";
+  width:0px;
+  color:black;
+  position:absolute;
+  left:11px;
+  top:55px;
+  border-left:20px solid transparent;
+  border-right:20px solid transparent;
+  border-top:20px solid rgb(100, 95, 87);
+  border-bottom:20px solid transparent;
 }
 </style>

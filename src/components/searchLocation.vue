@@ -38,6 +38,7 @@
             :end="walk_end" 
             :autoViewport="false"
             :panel="false"
+            @searchcomplete="searchcomplete"
             >
         </bm-walking>
     </baidu-map>
@@ -67,12 +68,12 @@ export default{
   			"lat":30.518365592201096
   		},
   		walk_start:{
-  			"lng":114.336368,
-  			"lat":30.516908
+  			"lng":114.345245,
+  			"lat":30.518474
   		},
   		walk_end:{
-  			"lng":114.340958,
-  			"lat":30.51767
+  			"lng":114.341463,
+  			"lat":30.517405
   		},
   		center:{
   			"lng":114.35100112284393,
@@ -144,8 +145,11 @@ export default{
   		console.log(this.map)
   	},
     searchcomplete(res){
-      console.log(res.xr[0].dk[0].zr)
+      console.log(JSON.stringify(res.xr[0].dk[0].zr))
       this.pointList=res.xr[0].dk[0].zr
+    },
+    complete(result){
+      console.log(result)
     },
     submitContent(){
       console.log("点击按钮了")
